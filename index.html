@@ -1,330 +1,396 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>8-Stream Live Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0c0c0e;
-            --surface-color: rgba(255, 255, 255, 0.03);
-            --accent-color: #ff0055;
-            --accent-glow: rgba(255, 0, 85, 0.4);
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0ab;
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --transition-speed: 0.3s;
-            --live-color: #00ff88;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Hero Scroll Video Website</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07070a;
+      --bg-card: #12121a;
+      --primary: #6366f1;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      --text-main: #ffffff;
+      --text-muted: #94a3b8;
+      --font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-x: hidden;
-            background: radial-gradient(circle at 50% 0%, #1a1a2e, #0c0c0e);
-            padding: 1.5rem 0;
-        }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
 
-        .container {
-            width: 98%;
-            max-width: 1800px;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            z-index: 10;
-        }
+    /* --- HERO SECTION (Sticky Scroll Video) --- */
+    .hero-container {
+      position: relative;
+      height: 500vh; /* Increased height to give the video a longer scroll track */
+    }
 
-        header {
-            text-align: center;
-        }
+    .hero-sticky {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-        h1 {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-            background: linear-gradient(90deg, #fff, #888);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    .video-viewport {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
 
-        .status-bar {
-            display: flex;
-            justify-content: center;
-            gap: 0.8rem;
-            margin-top: 0.5rem;
-            animation: fadeIn 1s ease-out;
-            flex-wrap: wrap;
-        }
+    .video-viewport::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(7, 7, 10, 0.3) 0%, rgba(7, 7, 10, 0.95) 100%);
+      z-index: 2;
+    }
 
-        .badge {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            padding: 0.3rem 0.8rem;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            backdrop-filter: blur(5px);
-        }
+    #scroll-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
-        .badge .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--live-color);
-            box-shadow: 0 0 8px var(--live-color);
-            animation: pulse 1.5s infinite;
-        }
+    /* Floating text inside the sticky Hero */
+    .hero-overlay {
+      position: absolute;
+      z-index: 3;
+      text-align: center;
+      padding: 2rem;
+      pointer-events: none;
+      max-width: 800px;
+    }
 
-        .badge.visitor-badge {
-            color: var(--text-secondary);
-        }
+    .hero-overlay h1 {
+      font-size: 4.5rem;
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      opacity: 1;
+      transform: translateY(0);
+      transition: transform 0.5s ease, opacity 0.5s ease;
+    }
 
-        .badge.live-badge {
-            color: var(--live-color);
-            font-weight: 600;
-        }
+    .hero-overlay p {
+      font-size: 1.4rem;
+      color: var(--text-muted);
+      font-weight: 300;
+      margin-bottom: 2rem;
+    }
 
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 1rem;
-            width: 100%;
-        }
+    .scroll-indicator {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: var(--primary);
+      animation: pulse 2s infinite;
+    }
 
-        @media (max-width: 800px) {
-            .grid-container {
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            }
-        }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
 
-        .video-card {
-            background: var(--surface-color);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: transform var(--transition-speed), border-color var(--transition-speed);
-        }
+    /* --- BODY CONTENT (Scrolls up normally) --- */
+    .content-section {
+      position: relative;
+      z-index: 10;
+      background-color: var(--bg-dark);
+      padding: 8rem 2rem;
+    }
 
-        .video-card:hover {
-            transform: translateY(-3px);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-        .video-wrapper {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            background: #000;
-        }
+    .section-title {
+      font-size: 2.8rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 4rem;
+      letter-spacing: -1px;
+    }
 
-        .video-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+    .section-title span {
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-        .card-controls {
-            padding: 0.6rem;
-            display: flex;
-            gap: 0.5rem;
-            background: rgba(0, 0, 0, 0.2);
-        }
+    /* Grid layout for features */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2.5rem;
+      margin-bottom: 6rem;
+    }
 
-        input[type="text"] {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 6px;
-            padding: 0.4rem 0.8rem;
-            color: white;
-            font-size: 0.8rem;
-            outline: none;
-            transition: border-color var(--transition-speed);
-        }
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 3rem;
+      border-radius: 24px;
+      transition: transform 0.4s ease, border-color 0.4s ease;
+    }
 
-        input[type="text"]:focus {
-            border-color: var(--accent-color);
-        }
+    .card:hover {
+      transform: translateY(-8px);
+      border-color: var(--primary);
+    }
 
-        button {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: background 0.2s;
-        }
+    .card-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      background: var(--primary-gradient);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
 
-        button:hover {
-            background: #ff2b73;
-        }
+    .card h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
 
-        /* Blobs */
-        .blob {
-            position: fixed;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-            filter: blur(100px);
-            z-index: 1;
-            opacity: 0.15;
-            pointer-events: none;
-        }
-        .blob-1 { top: -200px; left: -200px; }
-        .blob-2 { bottom: -200px; right: -200px; }
+    .card p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      font-weight: 300;
+    }
 
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.5; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+    /* Mock Stats Section */
+    .stats-container {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 32px;
+      padding: 4rem;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 2rem;
+      text-align: center;
+      margin-bottom: 6rem;
+    }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    .stat-item h4 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-    </style>
+    .stat-item p {
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      margin-top: 0.5rem;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 4rem 2rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+  </style>
 </head>
 <body>
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
 
-    <div class="container">
-        <header>
-            <h1>8-Stream Control Center</h1>
-            <p style="color: var(--text-secondary); font-size: 0.9rem;">최대 8개의 라이브 영상을 동시에 제어하세요</p>
-            
-            <div class="status-bar">
-                <div class="badge visitor-badge">
-                    <span>누적 방문수:</span>
-                    <span id="visitorCount" style="color: white; font-weight: 600;">0</span>
-                </div>
-                <div class="badge live-badge">
-                    <div class="dot"></div>
-                    <span>LIVE:</span>
-                    <span id="liveViewers">1,248</span>
-                </div>
-            </div>
-        </header>
+  <!-- Sticky Hero Section with Scroll Video -->
+  <div class="hero-container" id="hero-trigger">
+    <div class="hero-sticky">
+      <!-- Background Video -->
+      <div class="video-viewport">
+        <!-- Added title, type, and aria-hidden for accessibility standards to clear linter warnings -->
+        <video id="scroll-video" playsinline muted preload="auto" aria-hidden="true" title="Interactive Scroll Video Showcase">
+          <source src="optimized_hamburger.mp4" type="video/mp4">
+        </video>
+      </div>
 
-        <div class="grid-container" id="videoGrid">
-            <!-- Slots will be generated here -->
-        </div>
+      <!-- Hero Overlays -->
+      <div class="hero-overlay" id="hero-text">
+        <h1 id="hero-title">SCROLL TO UNLOCK</h1>
+        <p>비디오 타임라인이 스크롤 깊이와 완전히 동기화되어 움직입니다.</p>
+        <div class="scroll-indicator">↓ Scroll Down</div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        const defaultUrls = [
-            "https://www.youtube.com/watch?v=rnXIjl_Rzy4",
-            "https://www.youtube.com/watch?v=7ixtrNQHvpE",
-            "https://www.youtube.com/watch?v=HfgIFGbdGJ0",
-            "https://www.youtube.com/watch?v=M3EYAY2MftI",
-            "https://www.youtube.com/watch?v=FBYUkqutqzE",
-            "https://www.youtube.com/watch?v=Cp4RRAEgpeU",
-            "https://www.youtube.com/watch?v=sWasdbDVNvc",
-            "https://www.youtube.com/watch?v=WvXqIorR2KM"
-        ];
+  <!-- Main Body Content Section -->
+  <div class="content-section">
+    <div class="container">
+      
+      <h2 class="section-title">주요 <span>핵심 서비스</span></h2>
+      
+      <!-- Dummy Features Grid -->
+      <div class="grid">
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>초고속 로딩 속도</h3>
+          <p>모바일 디바이스 및 저사양 네트워크 환경에서도 버벅임 없이 리소스를 렌더링하도록 극단적으로 효율성을 설계했습니다.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">✨</div>
+          <h3>인터랙티브 디자인</h3>
+          <p>스크롤 타임라인 기법을 결합하여 지루한 정적 텍스트 정보 대신 역동적인 그래픽 유저 경험(UX)을 제공합니다.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📱</div>
+          <h3>반응형 모바일 설계</h3>
+          <p>화면 규격에 맞춰 레이아웃과 비디오 스케일이 자동으로 정렬되며, 모든 터치 디바이스의 스크롤 모멘텀과 호환됩니다.</p>
+        </div>
+      </div>
 
-        function createVideoCard(index, url) {
-            const card = document.createElement('div');
-            card.className = 'video-card';
-            card.innerHTML = `
-                <div class="video-wrapper">
-                    <iframe id="iframe${index}" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
-                <div class="card-controls">
-                    <input type="text" id="url${index}" value="${url}" placeholder="YouTube URL">
-                    <button onclick="updateVideo(${index})">변경</button>
-                </div>
-            `;
-            return card;
+      <!-- Statistics Stats Area -->
+      <div class="stats-container">
+        <div class="stat-item">
+          <h4>99.9%</h4>
+          <p>초당 프레임 유지율</p>
+        </div>
+        <div class="stat-item">
+          <h4>33ms</h4>
+          <p>디코더 탐색 간격</p>
+        </div>
+        <div class="stat-item">
+          <h4>2x+</h4>
+          <p>방문자 페이지 체류시간</p>
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <footer>
+        <p>© 2026 Interactive Web Template. All rights reserved.</p>
+      </footer>
+
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('scroll-video');
+    const heroTrigger = document.getElementById('hero-trigger');
+    const heroText = document.getElementById('hero-text');
+
+    let targetTime = 0;
+    let currentTime = 0;
+    let isVideoReady = false;
+    let lastSeekTime = 0;
+    const seekThrottle = 16; // Faster seek limit (16ms = up to 60fps)
+    let currentScrollProgress = 0;
+
+    // Function to initialize video playback & pause on load
+    function initVideoPreload() {
+      if (isVideoReady) return;
+      isVideoReady = true;
+      video.play().then(() => {
+        video.pause();
+        updateVideoTarget();
+      }).catch((err) => {
+        console.warn("Preload play was interrupted or requires interaction:", err);
+        updateVideoTarget();
+      });
+    }
+
+    // Play & Pause on load to preload video pipeline
+    video.addEventListener('loadedmetadata', initVideoPreload);
+
+    if (video.readyState >= 1) {
+      initVideoPreload();
+    }
+
+    function updateVideoTarget() {
+      if (!isVideoReady || isNaN(video.duration)) return;
+
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollHeight = heroTrigger.offsetHeight - window.innerHeight;
+      
+      let progress = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
+      progress = Math.max(0, Math.min(1, progress));
+      currentScrollProgress = progress; // Store globally for render()
+      
+      targetTime = progress * video.duration;
+
+      if (progress > 0) {
+        const textOpacity = Math.max(0, 1 - (progress * 2.5));
+        const textScale = Math.max(0.85, 1 - (progress * 0.2));
+        heroText.style.opacity = textOpacity.toString();
+        heroText.style.transform = `scale(${textScale})`;
+      } else {
+        heroText.style.opacity = "1";
+        heroText.style.transform = 'scale(1)';
+      }
+    }
+
+    window.addEventListener('scroll', updateVideoTarget);
+    window.addEventListener('resize', updateVideoTarget);
+
+    function render() {
+      if (isVideoReady && !isNaN(video.duration) && video.duration > 0) {
+        // Adaptive easing: if user scrolls to the absolute end or top, snap instantly (ease=1.0)
+        // Otherwise, use a highly responsive 0.22 ease to keep the video in tight sync with scroll
+        const ease = (currentScrollProgress >= 0.96 || currentScrollProgress <= 0.04) ? 1.0 : 0.22;
+        
+        currentTime += (targetTime - currentTime) * ease;
+        
+        if (Math.abs(currentTime - targetTime) < 0.005) {
+          currentTime = targetTime;
         }
 
-        function extractVideoID(url) {
-            const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-            const liveRegExp = /youtube\.com\/live\/([^#&?]*)/;
-            
-            let match = url.match(regExp);
-            if (match && match[7].length == 11) return match[7];
-            
-            match = url.match(liveRegExp);
-            if (match && match[1].length == 11) return match[1];
-            
-            return null;
+        const now = performance.now();
+        if (now - lastSeekTime > seekThrottle) {
+          const finalTime = Math.max(0, Math.min(currentTime, video.duration));
+          
+          if (Math.abs(video.currentTime - finalTime) > 0.01) {
+            video.currentTime = finalTime;
+            lastSeekTime = now;
+          }
         }
+      }
+      
+      requestAnimationFrame(render);
+    }
 
-        function updateVideo(index) {
-            const urlInput = document.getElementById(`url${index}`);
-            const iframe = document.getElementById(`iframe${index}`);
-            const videoId = extractVideoID(urlInput.value.trim());
-
-            if (videoId) {
-                iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1`;
-            } else {
-                alert('올바른 유튜브 링크를 입력해주세요.');
-            }
-        }
-
-        function initDashboard() {
-            // 1. Visitor Count
-            let visits = localStorage.getItem('visitor_count') || 0;
-            visits = parseInt(visits) + 1;
-            localStorage.setItem('visitor_count', visits);
-            document.getElementById('visitorCount').textContent = visits.toLocaleString();
-
-            // 2. Simulated Live Viewers
-            function updateLiveViewers() {
-                const base = 2400;
-                const random = Math.floor(Math.random() * 200);
-                document.getElementById('liveViewers').textContent = (base + random).toLocaleString();
-            }
-            setInterval(updateLiveViewers, 3000);
-            updateLiveViewers();
-
-            // 3. Generate Grid
-            const grid = document.getElementById('videoGrid');
-            defaultUrls.forEach((url, i) => {
-                grid.appendChild(createVideoCard(i, url));
-                updateVideo(i);
-            });
-
-            // 4. Enter key support
-            grid.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
-                    const id = e.target.id.replace('url', '');
-                    updateVideo(id);
-                }
-            });
-        }
-
-        window.addEventListener('DOMContentLoaded', initDashboard);
-    </script>
+    requestAnimationFrame(render);
+    updateVideoTarget();
+  </script>
 </body>
 </html>
